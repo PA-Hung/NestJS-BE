@@ -47,7 +47,6 @@ export class UsersService {
     return await this.userModel.updateOne({ _id: updateUserDto._id }, { ...updateUserDto });
   }
 
-
   remove(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return "User not found !"
