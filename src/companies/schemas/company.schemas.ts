@@ -34,16 +34,16 @@ export class Company {
 
 
     @Prop()
-    createAT: Date;
+    createdAt: Date;
 
     @Prop()
-    updateAT: Date;
+    updatedAt: Date;
 
     @Prop()
     isDeleted: boolean;
 
     @Prop()
-    deletedAT: Date;
+    deletedAt: Date;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

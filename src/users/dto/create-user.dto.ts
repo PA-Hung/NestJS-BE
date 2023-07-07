@@ -44,7 +44,6 @@ export class CreateUserDto {
 
     @IsNotEmpty()
     role: string;
-
 }
 
 export class RegisterUserDto {

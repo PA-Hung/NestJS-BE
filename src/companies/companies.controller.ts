@@ -11,15 +11,14 @@ export class CompaniesController {
 
   @Post()
   create(@Body() createCompanyDto: CreateCompanyDto, @ReqUser() userInfo: IUser) {
-    //console.log('>>>>>>>>>>>>>>> user info', userInfo);
     return this.companiesService.create(createCompanyDto, userInfo);
   }
 
   @Get()
   @ResponseMessage('Fetch list company with paginate !')
   findAll(
-    @Query('page') currentPage: string,
-    @Query('limit') limit: string,
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
     @Query() queryString: string
   ) {
     return this.companiesService.findAll(+currentPage, +limit, queryString);
@@ -32,14 +31,17 @@ export class CompaniesController {
 
   // truyền id theo kiểu param (id trên đường dẫn url)
   @Patch()
+  @ResponseMessage('Update a company !')
   update(
     @Param('id') id: string,
     @Body() updateCompanyDto: UpdateCompanyDto,
-    @ReqUser() userInfo: IUser) {
+    @ReqUser() userInfo: IUser
+  ) {
     return this.companiesService.update(id, updateCompanyDto, userInfo);
   }
 
   @Delete(':id')
+  @ResponseMessage('Delete a company !')
   remove(
     @Param('id') id: string,
     @ReqUser() userInfo: IUser
