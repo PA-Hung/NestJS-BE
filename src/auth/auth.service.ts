@@ -6,6 +6,7 @@ import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import ms from 'ms';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
         private usersService: UsersService,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private roleService: RolesService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -20,14 +22,17 @@ export class AuthService {
         if (user) {
             const isValidPassword = this.usersService.checkUserPassword(pass, user.password)
             if (isValidPassword === true) {
-                return user;
+                const userRole = user.role as unknown as { _id: string, name: string }
+                const roleTemp = await this.roleService.findOne(userRole._id)
+                const userData = { ...user.toObject(), permissions: roleTemp?.permissions ?? [] }
+                return userData;
             }
         }
         return null;
     }
 
     async loginService(user: IUser, response: Response) {
-        const { _id, name, email, role } = user;
+        const { _id, name, email, role, permissions } = user;
         const payload = {
             sub: "token login",
             iss: "from server",
@@ -48,17 +53,18 @@ export class AuthService {
 
         return {
             access_token: this.jwtService.sign(payload),
-            user_info: {
+            user: {
                 _id,
                 name,
                 email,
-                role
+                role,
+                permissions
             }
         };
     }
 
     async registerService(registerUserInfo: RegisterUserDto) {
-        let newUser = await this.usersService.register(registerUserInfo)
+        const newUser = await this.usersService.register(registerUserInfo)
         return {
             _id: newUser?._id,
             createdAt: newUser?.createdAt,
@@ -78,7 +84,7 @@ export class AuthService {
             this.jwtService.verify(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET')
             })
-            let user = await this.usersService.findUserByToken(refreshToken)
+            const user = await this.usersService.findUserByToken(refreshToken)
             if (user) {
                 const { _id, name, email, role } = user;
                 const payload = {
@@ -93,6 +99,10 @@ export class AuthService {
                 const refresh_token = this.createRefreshToken(payload)
                 // update user with refresh token
                 await this.usersService.updateUserToken(refresh_token, _id.toString())
+                // fetch user's role & permission
+                const userRole = user.role as unknown as { _id: string, name: string }
+                // role này ở db đang ở dạng id, phải chuyển đổi qua { _id: string, name: string }
+                const roleTemp = await this.roleService.findOne(userRole._id)
                 // set refresh token as cookies
                 response.clearCookie('refresh_token')
                 response.cookie('refresh_token', refresh_token, {
@@ -102,11 +112,12 @@ export class AuthService {
 
                 return {
                     access_token: this.jwtService.sign(payload),
-                    user_info: {
+                    user: {
                         _id,
                         name,
                         email,
-                        role
+                        role,
+                        permissions: roleTemp?.permissions ?? []
                     }
                 };
             } else {

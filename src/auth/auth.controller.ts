@@ -5,11 +5,13 @@ import { Public, ReqUser, ResponseMessage } from 'src/decorator/customize';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { Response as ResCookies, Request as ReqCookies } from 'express';
 import { IUser } from 'src/users/users.interface';
+import { RolesService } from 'src/roles/roles.service';
 
 @Controller('auth')
 export class AuthController {
     constructor(
-        private authService: AuthService
+        private authService: AuthService,
+        private rolesService: RolesService,
     ) { }
 
     @Public()
@@ -29,15 +31,12 @@ export class AuthController {
 
     @ResponseMessage('Get user infomation !')
     @Get('/account')
-    handleAccount(@Request() req: any) {
-        return {
-            user_info: {
-                _id: req.user._id,
-                name: req.user.name,
-                email: req.user.email,
-                role: req.user.role
-            }
-        };
+    async handleAccount(@ReqUser() user: IUser) {
+        // vì trong ReqUser không có chứa user permissions nên phải gán thủ công sau khi login
+        // ReqUser không có chứa vì không muốn đưa vào payload làm nặng thêm access Token
+        const userTemp = await this.rolesService.findOne(user.role._id) as any
+        user.permissions = userTemp.permissions
+        return { user }
     }
 
     @Public()

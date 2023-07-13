@@ -3,7 +3,7 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { IUser } from 'src/users/users.interface';
 import { InjectModel } from '@nestjs/mongoose';
-import { Job, JobDocument } from './schemas/job.schemas';
+import { Job, JobDocument } from './schemas/job.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
@@ -15,7 +15,7 @@ export class JobsService {
   private jobModel: SoftDeleteModel<JobDocument>) { }
 
   async create(createJobDto: CreateJobDto, userInfo: IUser) {
-    let jobData = await this.jobModel.create({
+    const jobData = await this.jobModel.create({
       ...createJobDto,
       createdBy: {
         _id: userInfo._id,

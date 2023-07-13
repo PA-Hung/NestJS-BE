@@ -9,4 +9,7 @@ export class UpdateCompanyDto {
 
     @IsNotEmpty({ message: 'Description không được để trống !' })
     description: string;
+
+    @IsNotEmpty()
+    logo: string;
 }

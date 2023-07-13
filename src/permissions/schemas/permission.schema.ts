@@ -1,19 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 
-export type CompanyDocument = HydratedDocument<Company>;
+export type PermissionDocument = HydratedDocument<Permission>;
 
 @Schema({ timestamps: true })
-export class Company {
+export class Permission {
     @Prop()
     name: string;
 
     @Prop()
-    address: string;
+    apiPath: string;
 
     @Prop()
-    description: string;
+    method: string;
 
+    @Prop()
+    module: string;
+
+    // luôn phải có
     @Prop({ type: Object })
     createdBy: {
         _id: mongoose.Schema.Types.ObjectId,
@@ -32,7 +36,6 @@ export class Company {
         email: string
     };
 
-
     @Prop()
     createdAt: Date;
 
@@ -46,4 +49,4 @@ export class Company {
     deletedAt: Date;
 }
 
-export const CompanySchema = SchemaFactory.createForClass(Company);
+export const PermissionSchema = SchemaFactory.createForClass(Permission);

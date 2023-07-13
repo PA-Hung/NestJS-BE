@@ -8,11 +8,16 @@ import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from './users.interface';
 import aqp from 'api-query-params';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name)
-  private userModel: SoftDeleteModel<UserDocument>
+  constructor(
+    @InjectModel(User.name)
+    private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>,
   ) { }
 
   hassPassword = (inputPassword: string) => {
@@ -27,7 +32,7 @@ export class UsersService {
       throw new BadRequestException(`Email: ${createUserData.email} đã tồn tại !`);
     }
     const hassPassword = this.hassPassword(createUserData.password)
-    let userData = await this.userModel.create({
+    const userData = await this.userModel.create({
       email: createUserData.email,
       password: hassPassword,
       name: createUserData.name,
@@ -50,14 +55,15 @@ export class UsersService {
       throw new BadRequestException(`Email: ${registerUserInfo.email} đã tồn tại !`);
     }
     const hassPassword = this.hassPassword(registerUserInfo.password)
-    let userData = await this.userModel.create({
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE })
+    const userData = await this.userModel.create({
       name: registerUserInfo.name,
       email: registerUserInfo.email,
       password: hassPassword,
       age: registerUserInfo.age,
       gender: registerUserInfo.gender,
       address: registerUserInfo.address,
-      role: 'User'
+      role: userRole?._id
     })
     return userData;
   }
@@ -97,10 +103,12 @@ export class UsersService {
       return "User not found !"
     }
     return this.userModel.findOne({ _id: id }).select('-password')
+      .populate({ path: "role", select: { _id: 1, name: 1 } })
   }
 
   findOneByUsername(username: string) {
     return this.userModel.findOne({ email: username })
+      .populate({ path: "role", select: { name: 1 } })
   }
 
   checkUserPassword(password: string, hashPass: string) {
@@ -122,6 +130,12 @@ export class UsersService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return "User not found !"
     }
+    const checkAdmin = await this.userModel.findOne({ _id: id })
+    if (checkAdmin.email === "admin@gmail.com") {
+      throw new BadRequestException(
+        `Bạn không được xoá tài khoản admin !`
+      );
+    }
     await this.userModel.updateOne({ _id: id }, {
       deletedBy: {
         _id: userAuthInfo._id,
@@ -137,5 +151,6 @@ export class UsersService {
 
   findUserByToken = async (refreshToken: string) => {
     return await this.userModel.findOne({ refreshToken })
+      .populate({ path: "role", select: { name: 1 } })
   }
 }

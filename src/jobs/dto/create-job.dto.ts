@@ -8,6 +8,9 @@ class Company {
 
     @IsNotEmpty()
     name: string;
+
+    @IsNotEmpty()
+    logo: string;
 }
 
 export class CreateJobDto {
@@ -36,6 +39,9 @@ export class CreateJobDto {
 
     @IsNotEmpty()
     description: string;
+
+    @IsNotEmpty()
+    location: string;
 
     @IsNotEmpty()
     @Transform(({ value }) => new Date(value)) // convert dữ liệu từ string sang dạng date

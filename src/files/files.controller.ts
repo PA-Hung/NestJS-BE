@@ -12,10 +12,12 @@ export class FilesController {
   @Public()
   @Post('upload')
   @ResponseMessage('Upload Single File !')
-  @UseInterceptors(FileInterceptor('imgFile')) //tên field sử dụng trong form-data
+  @UseInterceptors(FileInterceptor('fileUpload')) //tên field sử dụng trong form-data
   uploadFile(@UploadedFile(
     new ParseFilePipeBuilder()
-      .addFileTypeValidator({ fileType: /^(image\/jpeg|image\/png|image\/gif)$/i })
+      .addFileTypeValidator({
+        fileType: /^(image\/jpeg|image\/png|image\/gif|application\/msword)$/i
+      })
       .addMaxSizeValidator({ maxSize: 1000 * 1024 })
       .build({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
   ) file: Express.Multer.File) {

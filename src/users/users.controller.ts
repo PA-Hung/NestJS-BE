@@ -12,7 +12,7 @@ export class UsersController {
   @ResponseMessage('Create a new user !')
   @Post()
   async create(@Body() createUserData: CreateUserDto, @ReqUser() userAuthInfo: IUser) {
-    let newUser = await this.usersService.create(createUserData, userAuthInfo);
+    const newUser = await this.usersService.create(createUserData, userAuthInfo);
     return {
       _id: newUser?._id,
       createdAt: newUser?.createdAt
