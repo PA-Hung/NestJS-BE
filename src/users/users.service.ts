@@ -130,8 +130,9 @@ export class UsersService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return "User not found !"
     }
+    // check xem có phải admin không ? nếu là admin thì không cho xoá
     const checkAdmin = await this.userModel.findOne({ _id: id })
-    if (checkAdmin.email === "admin@gmail.com") {
+    if (checkAdmin && checkAdmin.email === "admin@gmail.com") {
       throw new BadRequestException(
         `Bạn không được xoá tài khoản admin !`
       );
